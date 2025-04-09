@@ -51,6 +51,13 @@ fi
 
 # Set up motion detection script
 setup_motion_brightness() {
+    # Copy the template if not exists
+    if [ ! -f ./scripts/motion_brightness.py ]; then
+        echo "${YELLOW}Copying motion_brightness_template.py to motion_brightness.py...${NC}"
+        cp ./scripts/motion_brightness_template.py ./scripts/motion_brightness.py
+        chmod +x ./scripts/motion_brightness.py
+    fi
+
     # First, check if the PIR sensor test utility should be run
     read -p "${MAGENTA}Do you want to test if your PIR motion sensor is working? (y/N): ${NC}" run_test
     if [[ "$run_test" == "y" || "$run_test" == "Y" ]]; then
@@ -65,13 +72,6 @@ setup_motion_brightness() {
             MOTION_STATUS="disable_motion"
             return
         fi
-    fi
-    
-    # Copy the template if not exists
-    if [ ! -f ./scripts/motion_brightness.py ]; then
-        echo "${YELLOW}Copying motion_brightness_template.py to motion_brightness.py...${NC}"
-        cp ./scripts/motion_brightness_template.py ./scripts/motion_brightness.py
-        chmod +x ./scripts/motion_brightness.py
     fi
     
     # Read existing values if present
