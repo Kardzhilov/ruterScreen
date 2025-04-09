@@ -52,4 +52,5 @@ else
     sudo cat "$CONFIG_FILE" >> "$CONFIG_FILE.new"
     sudo mv "$CONFIG_FILE.new" "$CONFIG_FILE"
     echo "The line 'display_rotate=$new_rotation' has been added to the top of $CONFIG_FILE."
+    echo "Note you need toreboot the system to see the changes."
 fi

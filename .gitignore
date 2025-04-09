@@ -1,3 +1,4 @@
 scripts/launchSite.sh
+scripts/motion_brightness.py
 *.temp
 *.log
