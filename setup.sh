@@ -51,6 +51,22 @@ fi
 
 # Set up motion detection script
 setup_motion_brightness() {
+    # First, check if the PIR sensor test utility should be run
+    read -p "${MAGENTA}Do you want to test if your PIR motion sensor is working? (y/N): ${NC}" run_test
+    if [[ "$run_test" == "y" || "$run_test" == "Y" ]]; then
+        echo "${CYAN}Running PIR sensor test...${NC}"
+        echo "${YELLOW}This will help verify your sensor is connected to the correct GPIO pin.${NC}"
+        sudo python3 ./scripts/pir_test.py
+        
+        # After the test, ask if they want to continue with motion detection setup
+        read -p "${MAGENTA}Continue with motion detection setup? (Y/n): ${NC}" continue_setup
+        if [[ "$continue_setup" == "n" || "$continue_setup" == "N" ]]; then
+            echo "${YELLOW}Motion detection setup skipped.${NC}"
+            MOTION_STATUS="disable_motion"
+            return
+        fi
+    fi
+    
     # Copy the template if not exists
     if [ ! -f ./scripts/motion_brightness.py ]; then
         echo "${YELLOW}Copying motion_brightness_template.py to motion_brightness.py...${NC}"
