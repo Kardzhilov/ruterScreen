@@ -31,7 +31,7 @@ DEFAULT_PIN = 24
 
 # List of GPIO pins to test (excluding power and ground pins)
 # These are BCM numbers, not physical pin numbers
-AVAILABLE_PINS = [2, 3, 4, 17, 27, 22, 10, 9, 11, 5, 6, 13, 19, 26, 18, 23, 24, 25, 8, 7, 12, 16, 20, 21]
+AVAILABLE_PINS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27]
 
 def setup_gpio():
     """Set up GPIO and clean any previous configurations"""
