@@ -9,7 +9,7 @@ This guide will walk you through the process of assembling your RuterScreen usin
 - 1x Midframe to clap the screen onto the case.
 - (Optional) Up to 12 Bushings. If you get screws that are too long like me you can print bushings for the relevant screws.
 
-*[Placeholder: Add photo of all printed parts laid out]*
+![3D printed parts laid out](../images/3dParts.jpg)
 
 ### 🔧 Hardware
 - 🖥️ Raspberry Pi (3B+, 4, or newer recommended)
@@ -21,13 +21,25 @@ This guide will walk you through the process of assembling your RuterScreen usin
     - 7mm long, i used 12mm but then printed bushings.
 - 🔩 4x M2.5 screws, this is what the back of the screen uses. 
     - 7mm long, i used 12mm but then printed bushings.
-*[Placeholder: Add photo of required hardware]*
+
+![Components laid out](../images/Components.jpg)
 
 ## 🖨️ Printing Guidelines
-I used PLA with 0.4mm nozzle.
-For everything i had 4 "Wall Line Count" and 30% infill.
-For everything opther than the case i used o.2mm layer hight, but the Case print has some M3 threads so i used "Dynamic Print Quality" for it where the layers with the threads ended up being 0.12mm layer hight. 
-Before printing the case print the "**ScrewTest.stl**" and confirm if you are able to screw M3 screws into it with your settings. 
+
+Printing all the parts uses less than 160g of plastic.
+
+### Recommended Print Settings
+- **Material**: PLA
+- **Nozzle Size**: 0.4mm
+- **Wall Count**: 4 lines
+- **Infill**: 30%
+
+### Layer Heights
+- **Case**: Dynamic Quality (0.12mm for threaded sections)
+- **Other Parts**: 0.2mm layer height
+
+### Important Pre-Print Test
+Before printing the full case, print `ScrewTest.stl` to verify your printer can properly create M3 threads with your current settings.
 
 ## 🔨 Build Steps
 
@@ -43,7 +55,12 @@ Before printing the case print the "**ScrewTest.stl**" and confirm if you are ab
 6. ✅ Boot and confirm you get an image output to your DSI Sceen and that the touch screen works.
 7. 👋 *Optional* Connect the PIR Motion Sensor based on this diagram:
 
-[Image of how to connect]
+#### Connect Pir cables like this
+![Pir cables](../images/PirCables.jpg)
+#### Set the dials to be like this
+![Pir orange screws](../images/PirSettingOrange.png)
+#### Make sure the jumper cable is in this position
+![Pir jumper cable](../images/PirSettingJumper.png)
 
 ### 2️⃣ RuterScreen Installation
 1. 📥 Clone this repository using 

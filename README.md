@@ -2,8 +2,7 @@
 
 A Raspberry Pi-powered display for showing real-time Ruter timetables. This project combines hardware and software to create an always-on display that shows public transport departures from your chosen stop in Oslo/Viken, Norway.
 
-![RuterScreen in action](images/demo.gif)
-*[Placeholder: Add GIF/video showing the display in action]*
+![Finished Product](images/Finished.jpg)
 
 ## 📋 Overview
 
@@ -82,6 +81,7 @@ The setup script will guide you through configuring:
 ## 📝 Todo
 - 🖱️ Disable cursor being displayed
     - **⚠️ Blocked** until rapberry pi os updates to a version of labwc that includes this change https://github.com/labwc/labwc/pull/2633
+- 🎥 Add a gif of the screen going from black to lit as the main image of this readme.
 
 ## 🤝 Contributing
 
