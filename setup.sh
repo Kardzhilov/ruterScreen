@@ -6,11 +6,11 @@ source ./scripts/colours.sh
 echo "${CYAN}Starting setup...${NC}"
 
 # Run departures.sh script
-# ./scripts/departures.sh 
+./scripts/departures.sh 
 
 # Set up screen orientation
 echo "${CYAN}Setting up screen orientation...${NC}"
-# sudo ./scripts/screenOrentation.sh
+sudo ./scripts/screenOrentation.sh
 
 # Variable to track motion detection status for cronJobs
 MOTION_STATUS=""
