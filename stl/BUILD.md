@@ -78,10 +78,13 @@ Before printing the full case, print `ScrewTest.stl` to verify your printer can 
 ### 3️⃣ Assembly
 1. 📺 Place the screen into the Case body.
     - You will notice that the besals on the screen are not all the same width, make sure you put the screen in with the correct orentation. Feel free to power it on to confirm it is right before you continue.
-2. 🔧 Put in the midframe, screw it onto the screen with 4 **M2.5** screws and screw the frame to the case with 4-8 **M3** screws
-3. 👋 Put the pir sensor in its circular slot, the small arms should keep it in place.
+2. 🔧 Put in the midframe, make sure that the side that is not flat is facing the screen, screw it onto the screen with 4 **M2.5** screws and screw the frame to the case with 4-8 **M3** screws
+3. 👋 (Optional) Put the pir sensor in its circular slot, the small arms should keep it in place.
 4. 🔌 Plug in the power cable and you are done!
 
 ## ❓ Troubleshooting
 - 🖥️ Display not working? Double-check the DSI cable connection
 - 👋 PIR sensor issues? Verify GPIO connections
+- 🕰️ Wrong time? Verify that you have set the correct timezone on the pi.
+    - Use ```timedatectl``` to check which time zone it is set to now.
+    - Use ```sudo timedatectl set-timezone Europe/Oslo``` to set it to the Norwegian timezone
