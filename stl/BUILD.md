@@ -81,6 +81,7 @@ Before printing the full case, print `ScrewTest.stl` to verify your printer can 
 2. 🔧 Put in the midframe, make sure that the side that is not flat is facing the screen, screw it onto the screen with 4 **M2.5** screws and screw the frame to the case with 4-8 **M3** screws
 3. 👋 (Optional) Put the pir sensor in its circular slot, the small arms should keep it in place.
 4. 🔌 Plug in the power cable and you are done!
+5. 🔥(Optional) Consider underclocking the pi since the workload it has to do now is very minimal and it would reduce the heat output. 
 
 ## ❓ Troubleshooting
 - 🖥️ Display not working? Double-check the DSI cable connection
