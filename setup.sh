@@ -103,7 +103,7 @@ setup_motion_brightness() {
         use_motion=true
         # Configure timeout for motion detection
         echo "${CYAN}Configure how long before the screen dims when no motion is detected.${NC}"
-        read -p "${MAGENTA}Enter timeout in seconds (default is $current_timeout, 120 = 2 minutes): ${NC}" timeout
+        read -p "${MAGENTA}Enter timeout in seconds (default is $current_timeout, 30 = 30 seconds): ${NC}" timeout
         # Use default if empty
         timeout=${timeout:-$current_timeout}
         

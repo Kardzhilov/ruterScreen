@@ -26,8 +26,8 @@ def parse_arguments():
     default_log = str(Path.home() / "motion_detector.log")
     
     parser = argparse.ArgumentParser(description='Motion-activated screen brightness controller')
-    parser.add_argument('--timeout', type=int, default=120,
-                        help='Time with no motion before turning off screen (default: 120)')
+    parser.add_argument('--timeout', type=int, default=30,
+                        help='Time with no motion before turning off screen (default: 30)')
     parser.add_argument('--on-value', type=str, default="255",
                         help='Brightness value when turning on (default: 255)')
     parser.add_argument('--off-value', type=str, default="0",
