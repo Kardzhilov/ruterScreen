@@ -5,8 +5,8 @@ source ./scripts/colours.sh
 
 echo "${CYAN}Starting setup...${NC}"
 
-# Run departures.sh script
-./scripts/departures.sh 
+# Run dependencies.sh script
+./scripts/dependencies.sh 
 
 # Set up screen orientation
 echo "${CYAN}Setting up screen orientation...${NC}"
