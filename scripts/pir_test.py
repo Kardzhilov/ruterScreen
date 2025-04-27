@@ -39,8 +39,13 @@ AVAILABLE_PINS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 16, 17, 18, 19, 20, 21, 22, 
 def setup_gpio():
     """Set up GPIO and clean any previous configurations"""
     GPIO.setwarnings(False)
-    GPIO.setmode(GPIO.BCM)
-    GPIO.cleanup()
+    try:
+        GPIO.setmode(GPIO.BCM)
+    except RuntimeError as e:
+        # This can happen if the mode is already set to something else
+        # In this case, reset and try again
+        GPIO.cleanup()
+        GPIO.setmode(GPIO.BCM)
 
 def test_pin(pin, test_duration=5):
     """
