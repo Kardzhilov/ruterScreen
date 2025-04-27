@@ -76,14 +76,21 @@ setup_motion_brightness() {
     
     # Read existing values if present
     if [ -f ./scripts/motion_brightness.py ]; then
-        current_timeout=$(grep -oP 'default=\K[0-9]+(?=.*Time with no motion)' ./scripts/motion_brightness.py)
-        current_on_value=$(grep -oP 'default="\K[0-9]+(?=".*Brightness value when turning on)' ./scripts/motion_brightness.py)
-        current_off_value=$(grep -oP 'default="\K[0-9]+(?=".*Brightness value when turning off)' ./scripts/motion_brightness.py)
+        # Extract the values with more precise patterns
+        current_timeout=$(grep -oP '\-\-timeout.*default=\K[0-9]+' ./scripts/motion_brightness.py)
+        current_on_value=$(grep -oP '\-\-on-value.*default="\K[0-9]+' ./scripts/motion_brightness.py)
+        current_off_value=$(grep -oP '\-\-off-value.*default="\K[0-9]+' ./scripts/motion_brightness.py)
     else
-        current_timeout=120
-        current_on_value=255
-        current_off_value=0
+        # If copying from template, extract from template instead
+        current_timeout=$(grep -oP '\-\-timeout.*default=\K[0-9]+' ./scripts/motion_brightness_template.py)
+        current_on_value=$(grep -oP '\-\-on-value.*default="\K[0-9]+' ./scripts/motion_brightness_template.py)
+        current_off_value=$(grep -oP '\-\-off-value.*default="\K[0-9]+' ./scripts/motion_brightness_template.py)
     fi
+    
+    # Fallback to hardcoded defaults if extraction fails
+    current_timeout=${current_timeout:-30}
+    current_on_value=${current_on_value:-255}
+    current_off_value=${current_off_value:-0}
     
     # Ask if user wants to enable motion detection
     read -p "${MAGENTA}Do you want to enable motion detection to dim the screen when idle? (Y/n): ${NC}" enable_motion
@@ -108,7 +115,7 @@ setup_motion_brightness() {
         timeout=${timeout:-$current_timeout}
         
         # Update the timeout in the file
-        sed -i "s/--timeout', type=int, default=[0-9]\+/--timeout', type=int, default=$timeout/" ./scripts/motion_brightness.py
+        sed -i "s/--timeout'.*default=[0-9]\+/--timeout', type=int, default=$timeout/" ./scripts/motion_brightness.py
         echo "${GREEN}Timeout set to $timeout seconds.${NC}"
     fi
     
@@ -127,7 +134,7 @@ setup_motion_brightness() {
         read -p "${MAGENTA}Is this brightness good? (Y/n): ${NC}" is_good
         if [[ "$is_good" != "n" && "$is_good" != "N" ]]; then
             # Update the on_value in the file
-            sed -i "s/--on-value', type=str, default=\"[0-9]\+\"/--on-value', type=str, default=\"$on_value\"/" ./scripts/motion_brightness.py
+            sed -i "s/--on-value'.*default=\"[0-9]\+\"/--on-value', type=str, default=\"$on_value\"/" ./scripts/motion_brightness.py
             break
         fi
     done
@@ -153,13 +160,13 @@ setup_motion_brightness() {
             read -p "${MAGENTA}Is this dimmed brightness good? (Y/n): ${NC}" is_good
             if [[ "$is_good" != "n" && "$is_good" != "N" ]]; then
                 # Update the off_value in the file
-                sed -i "s/--off-value', type=str, default=\"[0-9]\+\"/--off-value', type=str, default=\"$off_value\"/" ./scripts/motion_brightness.py
+                sed -i "s/--off-value'.*default=\"[0-9]\+\"/--off-value', type=str, default=\"$off_value\"/" ./scripts/motion_brightness.py
                 break
             fi
         done
     else
         # If motion detection is disabled, set both brightness values to the same
-        sed -i "s/--off-value', type=str, default=\"[0-9]\+\"/--off-value', type=str, default=\"$on_value\"/" ./scripts/motion_brightness.py
+        sed -i "s/--off-value'.*default=\"[0-9]\+\"/--off-value', type=str, default=\"$on_value\"/" ./scripts/motion_brightness.py
     fi
     
     # Always set brightness back to on_value at the end
