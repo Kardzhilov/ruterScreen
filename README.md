@@ -1,12 +1,38 @@
 # 🚉 RuterScreen
 
-A Raspberry Pi-powered display for showing real-time Ruter timetables. This project combines hardware and software to create an always-on display that shows public transport departures from your chosen stop in Oslo/Viken, Norway.
+A Raspberry Pi-powered display for showing real-tThe setup script will guide you through configuring:
+1. 🖥️ Display mode (timetable-only or combined weather+timetable)
+2. 🔗 Your Ruter stop URL
+3. 🌤️ Your weather location ID (if using combined mode)
+4. 🔆 Display brightness levels
+5. 👋 Motion detection settings (if using PIR sensor)
+6. 🔄 Screen orientation
+7. 🚀 Auto-start settings
+
+### 🌤️ Weather Widget Configuration
+
+For the weather widget, you'll need to:
+1. Visit [weatherwidget.org](https://weatherwidget.org/)
+2. Search for your city and copy the location ID (e.g., "wl8757" for Oslo)
+3. Choose between Oslo (pre-configured) or enter your custom location ID during setup
+
+### 🌤️ Quick Display Configuration
+
+If you want to change the display mode or weather location ID without running the full setup, you can use:
+```bash
+./scripts/update_weather.sh
+```
+
+This script allows you to:
+- Switch between timetable-only and combined display modes
+- Update the weather location ID (for combined mode)
+- Quick access to Oslo or custom location configuration. This project combines hardware and software to create an always-on display that shows public transport departures from your chosen stop in Oslo/Viken, Norway.
 
 ![Finished Product](images/Finished.jpg)
 
 ## 📋 Overview
 
-RuterScreen provides a dedicated display for Ruter's public transport timetables, featuring automatic screen dimming when no one is around to save energy and extend display life.
+RuterScreen provides a dedicated display for Ruter's public transport timetables with optional integrated weather forecast, featuring automatic screen dimming when no one is around to save energy and extend display life. Choose between a full-screen timetable display or a combined layout with weather information in the top portion and Ruter timetables in the main area below.
 
 ## 🔄 Data Source
 
@@ -27,6 +53,8 @@ You can modify this project to use Tavla instead of mon.ruter.no if you prefer t
 
 ## ✨ Features
 - 🚍 Real-time display of Ruter timetables from any stop
+- 🌤️ Optional integrated weather widget from weatherwidget.org
+- 📱 Flexible display modes: timetable-only or combined weather+timetable
 - 👋 Motion-activated display with automatic dimming
 - 🔆 Customizable brightness levels and timeout settings
 - 🔄 Auto-refresh to keep timetable alive in the case of an internet outage or ruter servers downtime
@@ -52,7 +80,9 @@ You can modify this project to use Tavla instead of mon.ruter.no if you prefer t
 - `setup.sh` - Interactive configuration script
 - `scripts/brightness.sh` - Controls display brightness
 - `scripts/motion_brightness.py` - Handles motion detection and auto-dimming
-- `scripts/launchSite.sh` - Manages the display of the Ruter timetable
+- `scripts/launchSite.sh` - Manages the display of the Ruter timetable (with optional weather widget)
+- `display.html` - Combined layout for weather widget + timetable display
+- `display-timetable-only.html` - Full-screen timetable layout
 
 ### ⭐ Features
 - **👋 Motion Detection**: Automatically dims/brightens the display based on presence
@@ -62,11 +92,25 @@ You can modify this project to use Tavla instead of mon.ruter.no if you prefer t
 ## ⚙️ Configuration
 
 The setup script will guide you through configuring:
-1. 🔗 Your Ruter stop URL
-2. 🔆 Display brightness levels
-3. 👋 Motion detection settings (if using PIR sensor)
-4. 🔄 Screen orientation
-5. 🚀 Auto-start settings
+1. �️ Display mode (timetable-only or combined weather+timetable)
+2. �🔗 Your Ruter stop URL
+3. 🌤️ Your preferred weather service URL (if using combined mode)
+4. 🔆 Display brightness levels
+5. 👋 Motion detection settings (if using PIR sensor)
+6. 🔄 Screen orientation
+7. 🚀 Auto-start settings
+
+### 🌤️ Quick Display Configuration
+
+If you want to change the display mode or weather service URL without running the full setup, you can use:
+```bash
+./scripts/update_weather.sh
+```
+
+This script allows you to:
+- Switch between timetable-only and combined display modes
+- Update the weather service URL (for combined mode)
+- Quick access to popular weather services
 
 ## 🛠️ Hardware Requirements
 

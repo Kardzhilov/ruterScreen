@@ -23,30 +23,165 @@ else
     echo "${GREEN}launchSite.sh already exists.${NC}"
 fi
 
-# Extract the current URL from launchSite.sh
-current_url=$(grep '^URL=' ./scripts/launchSite.sh | cut -d '"' -f 2)
-if [ -n "$current_url" ]; then
-    read -p "${MAGENTA}The current URL is set to '$current_url'. Do you want to update it? (y/N): ${NC}" update
-    if [[ "$update" == "y" || "$update" == "Y" ]]; then
+# Configure display mode
+echo "${CYAN}Configure your display mode:${NC}"
+echo "${YELLOW}1. Timetable only${NC} - Full screen Ruter timetable"
+echo "${YELLOW}2. Combined display${NC} - Weather forecast (top) + Ruter timetable (bottom)"
+echo ""
+
+current_display_mode=$(grep '^DISPLAY_MODE=' ./scripts/launchSite.sh | cut -d '"' -f 2)
+if [ -n "$current_display_mode" ]; then
+    if [ "$current_display_mode" = "timetable" ]; then
+        echo "${GREEN}Current mode: Timetable only${NC}"
+    else
+        echo "${GREEN}Current mode: Combined display${NC}"
+    fi
+    read -p "${MAGENTA}Do you want to change the display mode? (y/N): ${NC}" change_mode
+    if [[ "$change_mode" != "y" && "$change_mode" != "Y" ]]; then
+        echo "${GREEN}Keeping current display mode.${NC}"
+        SKIP_DISPLAY_CONFIG=true
+    fi
+fi
+
+if [ "$SKIP_DISPLAY_CONFIG" != "true" ]; then
+    while true; do
+        read -p "${MAGENTA}Select display mode (1 or 2): ${NC}" mode_choice
+        case $mode_choice in
+            1)
+                display_mode="timetable"
+                echo "${GREEN}Selected: Timetable only${NC}"
+                break
+                ;;
+            2)
+                display_mode="combined"
+                echo "${GREEN}Selected: Combined display (weather + timetable)${NC}"
+                break
+                ;;
+            *)
+                echo "${RED}Invalid choice. Please select 1 or 2.${NC}"
+                ;;
+        esac
+    done
+    
+    # Update display mode in launchSite.sh
+    sed -i "s|^DISPLAY_MODE=\".*\"|DISPLAY_MODE=\"$display_mode\"|" ./scripts/launchSite.sh
+else
+    display_mode="$current_display_mode"
+fi
+
+# Extract the current URLs from launchSite.sh
+current_ruter_url=$(grep '^RUTER_URL=' ./scripts/launchSite.sh | cut -d '"' -f 2)
+current_weather_location_id=$(grep '^WEATHER_LOCATION_ID=' ./scripts/launchSite.sh | cut -d '"' -f 2)
+
+if [ -n "$current_ruter_url" ]; then
+    read -p "${MAGENTA}The current Ruter URL is set to '$current_ruter_url'. Do you want to update it? (y/N): ${NC}" update_ruter
+    if [[ "$update_ruter" == "y" || "$update_ruter" == "Y" ]]; then
         echo "${CYAN}Time to set the Ruter URL for your custom stop.${NC}"
         echo "${CYAN}Go to https://mon.ruter.no/ and fill out/customize your stop.${NC}"
         echo "${CYAN}Once you have set up your custom stop, copy and paste the whole URL into this terminal.${NC}"
-        read -p "${MAGENTA}URL: ${NC}" url
+        read -p "${MAGENTA}Ruter URL: ${NC}" ruter_url
 
         # Replace the placeholder URL in launchSite.sh
-        sed -i "s|^URL=\".*\"|URL=\"$url\"|" ./scripts/launchSite.sh
+        sed -i "s|^RUTER_URL=\".*\"|RUTER_URL=\"$ruter_url\"|" ./scripts/launchSite.sh
     else
-        echo "${GREEN}Skipping URL update.${NC}"
+        echo "${GREEN}Keeping current Ruter URL.${NC}"
     fi
 else
-    echo "${YELLOW}No URL found in launchSite.sh. Setting a new URL.${NC}"
+    echo "${YELLOW}No Ruter URL found in launchSite.sh. Setting a new URL.${NC}"
     echo "${CYAN}Time to set the Ruter URL for your custom stop.${NC}"
     echo "${CYAN}Go to https://mon.ruter.no/ and fill out/customize your stop.${NC}"
     echo "${CYAN}Once you have set up your custom stop, copy and paste the whole URL into this terminal.${NC}"
-    read -p "${MAGENTA}URL: ${NC}" url
+    read -p "${MAGENTA}Ruter URL: ${NC}" ruter_url
 
     # Replace the placeholder URL in launchSite.sh
-    sed -i "s|^URL=\".*\"|URL=\"$url\"|" ./scripts/launchSite.sh
+    sed -i "s|^RUTER_URL=\".*\"|RUTER_URL=\"$ruter_url\"|" ./scripts/launchSite.sh
+fi
+
+# Configure weather location ID only if combined mode is selected
+if [ "$display_mode" = "combined" ]; then
+    if [ -n "$current_weather_location_id" ]; then
+        read -p "${MAGENTA}The current weather location ID is set to '$current_weather_location_id'. Do you want to update it? (y/N): ${NC}" update_weather
+        if [[ "$update_weather" == "y" || "$update_weather" == "Y" ]]; then
+            echo "${CYAN}Configure your weather location ID for weatherwidget.org.${NC}"
+            echo "${CYAN}Weather widget location options:${NC}"
+            echo "${CYAN}  1. Oslo, Norway (wl8757)${NC}"
+            echo "${CYAN}  2. Custom location ID${NC}"
+            echo ""
+            echo "${CYAN}To find your custom location ID:${NC}"
+            echo "${CYAN}  - Go to https://weatherwidget.org/${NC}"
+            echo "${CYAN}  - Search for your city${NC}"
+            echo "${CYAN}  - Copy the location ID (e.g., 'wl1234') from the widget code${NC}"
+            echo ""
+            
+            while true; do
+                read -p "${MAGENTA}Select option (1 for Oslo, 2 for custom): ${NC}" weather_choice
+                case $weather_choice in
+                    1)
+                        weather_location_id="wl8757"
+                        echo "${GREEN}Selected: Oslo, Norway (wl8757)${NC}"
+                        break
+                        ;;
+                    2)
+                        read -p "${MAGENTA}Enter your weatherwidget.org location ID (e.g., wl1234): ${NC}" weather_location_id
+                        if [[ -n "$weather_location_id" ]]; then
+                            echo "${GREEN}Selected: Custom location ($weather_location_id)${NC}"
+                            break
+                        else
+                            echo "${RED}Location ID cannot be empty. Please try again.${NC}"
+                        fi
+                        ;;
+                    *)
+                        echo "${RED}Invalid choice. Please select 1 or 2.${NC}"
+                        ;;
+                esac
+            done
+
+            # Replace the weather location ID in launchSite.sh
+            sed -i "s|^WEATHER_LOCATION_ID=\".*\"|WEATHER_LOCATION_ID=\"$weather_location_id\"|" ./scripts/launchSite.sh
+        else
+            echo "${GREEN}Keeping current weather location ID.${NC}"
+        fi
+    else
+        echo "${YELLOW}No weather location ID found in launchSite.sh. Setting weather location.${NC}"
+        echo "${CYAN}Configure your weather location ID for weatherwidget.org.${NC}"
+        echo "${CYAN}Weather widget location options:${NC}"
+        echo "${CYAN}  1. Oslo, Norway (wl8757)${NC}"
+        echo "${CYAN}  2. Custom location ID${NC}"
+        echo ""
+        echo "${CYAN}To find your custom location ID:${NC}"
+        echo "${CYAN}  - Go to https://weatherwidget.org/${NC}"
+        echo "${CYAN}  - Search for your city${NC}"
+        echo "${CYAN}  - Copy the location ID (e.g., 'wl1234') from the widget code${NC}"
+        echo ""
+        
+        while true; do
+            read -p "${MAGENTA}Select option (1 for Oslo, 2 for custom): ${NC}" weather_choice
+            case $weather_choice in
+                1)
+                    weather_location_id="wl8757"
+                    echo "${GREEN}Selected: Oslo, Norway (wl8757)${NC}"
+                    break
+                    ;;
+                2)
+                    read -p "${MAGENTA}Enter your weatherwidget.org location ID (e.g., wl1234): ${NC}" weather_location_id
+                    if [[ -n "$weather_location_id" ]]; then
+                        echo "${GREEN}Selected: Custom location ($weather_location_id)${NC}"
+                        break
+                    else
+                        echo "${RED}Location ID cannot be empty. Please try again.${NC}"
+                    fi
+                    ;;
+                *)
+                    echo "${RED}Invalid choice. Please select 1 or 2.${NC}"
+                    ;;
+            esac
+        done
+
+        # Replace the weather location ID in launchSite.sh
+        sed -i "s|^WEATHER_LOCATION_ID=\".*\"|WEATHER_LOCATION_ID=\"$weather_location_id\"|" ./scripts/launchSite.sh
+    fi
+else
+    echo "${YELLOW}Timetable-only mode selected. Skipping weather location configuration.${NC}"
 fi
 
 # Set up motion detection script

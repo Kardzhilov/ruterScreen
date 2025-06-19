@@ -2,3 +2,6 @@ scripts/launchSite.sh
 scripts/motion_brightness.py
 *.temp
 *.log
+
+# Test files (generated locally)
+test/

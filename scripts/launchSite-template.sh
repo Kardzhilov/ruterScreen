@@ -2,7 +2,17 @@
 # Improved Firefox launcher that works with both X11 and Wayland (including labwc)
 
 # Ruter URL - Replace this with your URL
-URL=""
+RUTER_URL=""
+
+# Weather Location ID - Replace this with weather widget location ID (e.g., "wl8757" for Oslo)
+WEATHER_LOCATION_ID="wl8757"
+
+# Display mode - "combined" for timetable+weather, "timetable" for timetable only
+DISPLAY_MODE="combined"
+
+# Path to the HTML display files
+DISPLAY_HTML_PATH="$(dirname "$(dirname "$(realpath "$0")")")/display.html"
+DISPLAY_TIMETABLE_ONLY_PATH="$(dirname "$(dirname "$(realpath "$0")")")/display-timetable-only.html"
 
 echo "Starting Firefox launcher..."
 echo "Current user: $(whoami)"
@@ -64,6 +74,67 @@ user_pref("browser.shell.checkDefaultBrowser", false);
 user_pref("widget.use-xdg-desktop-portal", true);
 EOF
 
+# Create a customized HTML file with the actual URLs
+CUSTOM_HTML_PATH="$TEMP_PROFILE/display.html"
+echo "Creating customized display HTML at $CUSTOM_HTML_PATH"
+
+# Check if URLs are set
+if [ -z "$RUTER_URL" ]; then
+    echo "Warning: RUTER_URL is not set. Please configure it in this script."
+    RUTER_URL="https://mon.ruter.no/"
+fi
+
+# Determine which template to use based on display mode
+if [ "$DISPLAY_MODE" = "timetable" ]; then
+    echo "Using timetable-only display mode"
+    TEMPLATE_PATH="$DISPLAY_TIMETABLE_ONLY_PATH"
+    
+    # Copy the timetable-only template and replace placeholders
+    if [ -f "$TEMPLATE_PATH" ]; then
+        cp "$TEMPLATE_PATH" "$CUSTOM_HTML_PATH"
+        
+        # Replace URL placeholder
+        sed -i "s|RUTER_URL_PLACEHOLDER|$RUTER_URL|g" "$CUSTOM_HTML_PATH"
+        
+        echo "URLs configured:"
+        echo "  Ruter: $RUTER_URL"
+        echo "  Display mode: Timetable only"
+    else
+        echo "Error: Timetable-only HTML template not found at $TEMPLATE_PATH"
+        exit 1
+    fi
+else
+    echo "Using combined display mode (timetable + weather)"
+    TEMPLATE_PATH="$DISPLAY_HTML_PATH"
+    
+    if [ -z "$WEATHER_LOCATION_ID" ]; then
+        echo "Using default weather location ID (Oslo - wl8757)"
+        WEATHER_LOCATION_ID="wl8757"
+    fi
+    
+    # Copy the combined template and replace placeholders
+    if [ -f "$TEMPLATE_PATH" ]; then
+        cp "$TEMPLATE_PATH" "$CUSTOM_HTML_PATH"
+        
+        # Generate unique widget ID based on timestamp and random number
+        WIDGET_ID="ww_$(date +%s)_$RANDOM"
+        
+        # Replace URL and widget placeholders
+        sed -i "s|RUTER_URL_PLACEHOLDER|$RUTER_URL|g" "$CUSTOM_HTML_PATH"
+        sed -i "s|WEATHER_WIDGET_ID_PLACEHOLDER|$WIDGET_ID|g" "$CUSTOM_HTML_PATH"
+        sed -i "s|WEATHER_LOCATION_ID_PLACEHOLDER|$WEATHER_LOCATION_ID|g" "$CUSTOM_HTML_PATH"
+        
+        echo "URLs configured:"
+        echo "  Ruter: $RUTER_URL"
+        echo "  Weather Location ID: $WEATHER_LOCATION_ID"
+        echo "  Weather Widget ID: $WIDGET_ID"
+        echo "  Display mode: Combined (timetable + weather)"
+    else
+        echo "Error: Combined display HTML template not found at $TEMPLATE_PATH"
+        exit 1
+    fi
+fi
+
 # Create a log file for debugging
 LOG_FILE="/tmp/firefox_launch.log"
 echo "Firefox launch log - $(date)" > "$LOG_FILE"
@@ -72,17 +143,17 @@ echo "Firefox launch log - $(date)" > "$LOG_FILE"
 echo "Environment variables:" >> "$LOG_FILE"
 env | grep -E 'DISPLAY|WAYLAND|XDG|GDK|MOZ' >> "$LOG_FILE"
 
-echo "Opening $URL in fullscreen mode in Firefox..."
+echo "Opening display with Ruter timetable and weather in fullscreen mode in Firefox..."
 
 # Launch Firefox with appropriate settings
 if [ "$USING_WAYLAND" = true ]; then
     echo "Launching Firefox in Wayland mode..."
     # Wayland approach - use different flags
-    firefox-esr --profile "$TEMP_PROFILE" --kiosk "$URL" >> "$LOG_FILE" 2>&1 &
+    firefox-esr --profile "$TEMP_PROFILE" --kiosk "file://$CUSTOM_HTML_PATH" >> "$LOG_FILE" 2>&1 &
 else
     echo "Launching Firefox in X11 mode..."
     # X11 approach - with no-remote flag
-    firefox-esr --profile "$TEMP_PROFILE" --no-remote --kiosk "$URL" >> "$LOG_FILE" 2>&1 &
+    firefox-esr --profile "$TEMP_PROFILE" --no-remote --kiosk "file://$CUSTOM_HTML_PATH" >> "$LOG_FILE" 2>&1 &
 fi
 
 FIREFOX_PID=$!
@@ -101,7 +172,7 @@ else
     cat > "$TEMP_PROFILE/launch_firefox.sh" << 'EOF'
 #!/bin/bash
 # Get the variables passed as arguments
-URL="$1"
+CUSTOM_HTML_PATH="$1"
 PROFILE="$2"
 
 # Set environment variables that might be needed
@@ -113,13 +184,13 @@ export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-"/run/user/$(id -u)"}
 export WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-0}
 
 # Launch Firefox with all environment variables properly set
-/usr/bin/firefox-esr --profile "$PROFILE" --kiosk "$URL"
+/usr/bin/firefox-esr --profile "$PROFILE" --kiosk "file://$CUSTOM_HTML_PATH"
 EOF
     
     chmod +x "$TEMP_PROFILE/launch_firefox.sh"
     
     # Try the wrapper script
-    "$TEMP_PROFILE/launch_firefox.sh" "$URL" "$TEMP_PROFILE" >> "$LOG_FILE" 2>&1 &
+    "$TEMP_PROFILE/launch_firefox.sh" "$CUSTOM_HTML_PATH" "$TEMP_PROFILE" >> "$LOG_FILE" 2>&1 &
     FIREFOX_PID=$!
     
     # Final check

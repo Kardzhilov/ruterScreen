@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RuterScreen Display</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            background-color: #000;
+            font-family: Arial, sans-serif;
+        }
+        
+        .container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .weather-section {
+            height: 21vh;
+            width: 100%;
+            background-color: #000;
+            border-bottom: 2px solid #333;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+        
+        .weather-widget-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .timetable-section {
+            height: 79vh;
+            width: 100%;
+            background-color: #000;
+        }
+        
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: #000;
+        }
+        
+        /* Weather widget specific styling */
+        div[id^="ww_"] {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: 100% !important;
+            min-height: 100% !important;
+        }
+        
+        /* Error handling styles */
+        .error-message {
+            color: white;
+            text-align: center;
+            padding: 20px;
+            background-color: #333;
+            font-size: 16px;
+        }
+        
+        /* Loading styles */
+        .loading {
+            color: white;
+            text-align: center;
+            padding: 20px;
+            background-color: #222;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Weather widget - top 21% of screen -->
+        <div class="weather-section">
+            <div class="weather-widget-container">
+                <div id="WEATHER_WIDGET_ID_PLACEHOLDER" v='1.3' loc='id' a='{"t":"horizontal","lang":"en","sl_lpl":1,"ids":["WEATHER_LOCATION_ID_PLACEHOLDER"],"font":"Arial","sl_ics":"one_a","sl_sot":"celsius","cl_bkg":"image","cl_font":"#FFFFFF","cl_cloud":"#FFFFFF","cl_persp":"#81D4FA","cl_sun":"#FFC107","cl_moon":"#FFC107","cl_thund":"#FF5722","el_nme":3}'>
+                    <a href="https://weatherwidget.org/" id="WEATHER_WIDGET_ID_PLACEHOLDER_u" target="_blank">Weather Widget</a>
+                </div>
+                <script async src="https://app3.weatherwidget.org/js/?id=WEATHER_WIDGET_ID_PLACEHOLDER"></script>
+            </div>
+        </div>
+        
+        <!-- Timetable iframe - bottom 79% of screen -->
+        <div class="timetable-section">
+            <iframe 
+                id="timetableFrame"
+                src="RUTER_URL_PLACEHOLDER"
+                title="Ruter Timetable"
+                loading="lazy"
+                sandbox="allow-scripts allow-same-origin allow-popups"
+                onload="handleFrameLoad('timetable')"
+                onerror="handleFrameError('timetable')">
+                <div class="error-message">Timetable data unavailable</div>
+            </iframe>
+        </div>
+    </div>
+
+    <script>
+        const REFRESH_INTERVAL = 5 * 60 * 1000;
+        
+        function handleFrameLoad(frameType) {
+            // Frame loaded successfully
+        }
+        
+        function handleFrameError(frameType) {
+            // Frame failed to load
+        }
+        
+        function refreshFrames() {
+            const timetableFrame = document.getElementById('timetableFrame');
+            if (timetableFrame) {
+                timetableFrame.src = timetableFrame.src;
+            }
+        }
+        
+        setInterval(refreshFrames, REFRESH_INTERVAL);
+        window.addEventListener('focus', refreshFrames);
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                refreshFrames();
+            }
+        });
+        
+        function checkWeatherWidget() {
+            const widget = document.querySelector('div[id^="ww_"]');
+            if (widget) {
+                widget.style.width = '100%';
+                widget.style.height = '120%';
+                widget.style.minHeight = '120%';
+                widget.style.marginTop = '-10px';
+                
+                const innerContent = widget.querySelector('div');
+                if (innerContent) {
+                    innerContent.style.width = '100%';
+                    innerContent.style.height = '100%';
+                    innerContent.style.transform = 'scale(1.1)';
+                    innerContent.style.transformOrigin = 'center top';
+                    innerContent.style.overflowX = 'auto';
+                    innerContent.style.webkitOverflowScrolling = 'touch';
+                    
+                    const scrollContainers = innerContent.querySelectorAll('div');
+                    scrollContainers.forEach(container => {
+                        if (container.scrollWidth > container.clientWidth) {
+                            container.style.overflowX = 'auto';
+                            container.style.webkitOverflowScrolling = 'touch';
+                            container.style.scrollBehavior = 'smooth';
+                        }
+                    });
+                }
+            } else {
+                setTimeout(checkWeatherWidget, 1000);
+            }
+        }
+        
+        setTimeout(checkWeatherWidget, 500);
+    </script>
+</body>
+</html>

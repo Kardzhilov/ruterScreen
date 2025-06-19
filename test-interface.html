@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RuterScreen Test Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+        
+        .test-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .test-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .test-button:active {
+            transform: translateY(0);
+        }
+        
+        .test-button .icon {
+            margin-right: 10px;
+            font-size: 1.3em;
+        }
+        
+        .info-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+        
+        .info-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .info-list {
+            text-align: left;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .info-list li {
+            margin-bottom: 8px;
+        }
+        
+        .note {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            text-align: left;
+            color: #1565c0;
+        }
+        
+        .file-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+        
+        .file-exists {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .file-missing {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .test-button {
+                padding: 15px 20px;
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🚉</div>
+        <h1>RuterScreen</h1>
+        <p class="subtitle">Local Test Interface</p>
+        
+        <div class="test-buttons">
+            <a href="test/test-combined-display.html" class="test-button" id="combinedBtn">
+                <span class="icon">🌤️</span>
+                Combined Display (Weather + Timetable)
+                <span class="file-status" id="combinedStatus">Check files...</span>
+            </a>
+            
+            <a href="test/test-timetable-only.html" class="test-button" id="timetableBtn">
+                <span class="icon">🚍</span>
+                Timetable Only
+                <span class="file-status" id="timetableStatus">Check files...</span>
+            </a>
+        </div>
+        
+        <div class="info-section">
+            <h3>📋 How to Use</h3>
+            <ul class="info-list">
+                <li><strong>Generate Test Files:</strong> Run <code>./generate_test_files.sh</code> in the terminal</li>
+                <li><strong>Preview Layouts:</strong> Click the buttons above to open test files in your browser</li>
+                <li><strong>Refresh Data:</strong> Press Ctrl+R (or Cmd+R on Mac) to refresh the page</li>
+                <li><strong>Test Different URLs:</strong> Use option 4 in the generator script for custom URLs</li>
+            </ul>
+            
+            <div class="note">
+                <strong>💡 Note:</strong> These are test files only. They won't affect your actual RuterScreen configuration. 
+                Run <code>./setup.sh</code> to configure the real display.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if test files exist and update button status
+        function checkFileExists(url, statusElementId, buttonId) {
+            fetch(url, { method: 'HEAD' })
+                .then(response => {
+                    const statusElement = document.getElementById(statusElementId);
+                    const buttonElement = document.getElementById(buttonId);
+                    
+                    if (response.ok) {
+                        statusElement.textContent = '✓ Ready';
+                        statusElement.className = 'file-status file-exists';
+                    } else {
+                        statusElement.textContent = '⚠ Generate first';
+                        statusElement.className = 'file-status file-missing';
+                        buttonElement.style.opacity = '0.6';
+                        buttonElement.onclick = function(e) {
+                            e.preventDefault();
+                            alert('Please run ./generate_test_files.sh first to create the test files.');
+                        };
+                    }
+                })
+                .catch(() => {
+                    const statusElement = document.getElementById(statusElementId);
+                    const buttonElement = document.getElementById(buttonId);
+                    
+                    statusElement.textContent = '⚠ Generate first';
+                    statusElement.className = 'file-status file-missing';
+                    buttonElement.style.opacity = '0.6';
+                    buttonElement.onclick = function(e) {
+                        e.preventDefault();
+                        alert('Please run ./generate_test_files.sh first to create the test files.');
+                    };
+                });
+        }
+
+        // Check both test files on page load
+        window.addEventListener('load', function() {
+            checkFileExists('test/test-combined-display.html', 'combinedStatus', 'combinedBtn');
+            checkFileExists('test/test-timetable-only.html', 'timetableStatus', 'timetableBtn');
+        });
+    </script>
+</body>
+</html>
