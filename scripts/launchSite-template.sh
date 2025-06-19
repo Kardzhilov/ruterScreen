@@ -116,8 +116,8 @@ else
     if [ -f "$TEMPLATE_PATH" ]; then
         cp "$TEMPLATE_PATH" "$CUSTOM_HTML_PATH"
         
-        # Generate widget ID - use a more predictable format that works better with weatherwidget.org
-        WIDGET_ID="ww_ruterscreen_$(date +%Y%m%d%H%M%S)"
+        # Use a known working widget ID that's compatible with weatherwidget.org
+        WIDGET_ID="ww_ab6e8fddccec6"
         
         # Replace URL and widget placeholders - need to replace multiple instances
         sed -i "s|RUTER_URL_PLACEHOLDER|$RUTER_URL|g" "$CUSTOM_HTML_PATH"
