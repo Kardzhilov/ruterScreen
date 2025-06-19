@@ -116,13 +116,35 @@ else
     if [ -f "$TEMPLATE_PATH" ]; then
         cp "$TEMPLATE_PATH" "$CUSTOM_HTML_PATH"
         
-        # Generate unique widget ID based on timestamp and random number
-        WIDGET_ID="ww_$(date +%s)_$RANDOM"
+        # Generate widget ID - use a more predictable format that works better with weatherwidget.org
+        WIDGET_ID="ww_ruterscreen_$(date +%Y%m%d%H%M%S)"
         
-        # Replace URL and widget placeholders
+        # Replace URL and widget placeholders - need to replace multiple instances
         sed -i "s|RUTER_URL_PLACEHOLDER|$RUTER_URL|g" "$CUSTOM_HTML_PATH"
         sed -i "s|WEATHER_WIDGET_ID_PLACEHOLDER|$WIDGET_ID|g" "$CUSTOM_HTML_PATH"
         sed -i "s|WEATHER_LOCATION_ID_PLACEHOLDER|$WEATHER_LOCATION_ID|g" "$CUSTOM_HTML_PATH"
+        
+        # Debug: Check if replacements worked
+        echo "Debug: Checking widget ID replacements..."
+        if grep -q "$WIDGET_ID" "$CUSTOM_HTML_PATH"; then
+            echo "  ✓ Widget ID successfully replaced with: $WIDGET_ID"
+        else
+            echo "  ✗ Widget ID replacement failed!"
+        fi
+        
+        if grep -q "$WEATHER_LOCATION_ID" "$CUSTOM_HTML_PATH"; then
+            echo "  ✓ Location ID successfully replaced with: $WEATHER_LOCATION_ID"
+        else
+            echo "  ✗ Location ID replacement failed!"
+        fi
+        
+        # Test weather widget service connectivity
+        echo "Debug: Testing weather widget service connectivity..."
+        if curl -s --connect-timeout 5 "https://app3.weatherwidget.org/js/?id=$WIDGET_ID" | head -c 10 > /dev/null; then
+            echo "  ✓ Weather widget service is reachable"
+        else
+            echo "  ⚠ Weather widget service may not be reachable (check internet connection)"
+        fi
         
         echo "URLs configured:"
         echo "  Ruter: $RUTER_URL"

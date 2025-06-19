@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# RuterScreen Cron Job Setup Script
+# This script sets up automated tasks for the RuterScreen display:
+# - Launch the display at boot (with weather widget integration)
+# - Restart the display every 8 hours to keep it fresh
+# - Optionally enable/disable motion detection
+
 # Get the directory where this script resides
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
@@ -12,7 +18,7 @@ LOG_FILE="$SCRIPT_DIR/firefox.log"
 
 # Define the cronjobs
 CRONJOB_LAUNCH="@reboot sleep 60 && $LAUNCH_SCRIPT >> $LOG_FILE 2>&1"
-CRONJOB_RESTART="0 */10 * * * $LAUNCH_SCRIPT >> $LOG_FILE 2>&1"
+CRONJOB_RESTART="0 */8 * * * $LAUNCH_SCRIPT >> $LOG_FILE 2>&1"
 CRONJOB_MOTION="@reboot sleep 30 && sudo python3 $MOTION_SCRIPT"
 
 # Function to check if a cronjob exists
@@ -35,13 +41,13 @@ setup_basic_cronjobs() {
   current_crontab=$(crontab -l 2>/dev/null | grep -v "$SCRIPT_DIR/refre.sh")
   echo "$current_crontab" | crontab -
 
-  # Check if the every-10-hours cronjob already exists
+  # Check if the every-8-hours cronjob already exists
   if cronjob_exists "$CRONJOB_RESTART"; then
-    echo "Cronjob for launchSite.sh every 10 hours already exists. No changes made."
+    echo "Cronjob for launchSite.sh every 8 hours already exists. No changes made."
   else
-    # Add the every-10-hours cronjob
+    # Add the every-8-hours cronjob
     (crontab -l 2>/dev/null; echo "$CRONJOB_RESTART") | crontab -
-    echo "Cronjob for launchSite.sh every 10 hours added successfully."
+    echo "Cronjob for launchSite.sh every 8 hours added successfully."
   fi
 }
 
