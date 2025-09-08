@@ -1,6 +1,10 @@
 # 🚉 RuterScreen
 
-A Raspberry Pi-powered display for showing real-tThe setup script will guide you through configuring:
+A Raspberry Pi-powered display for showing real-time public transport timetables in Oslo/Viken.
+
+> **Note:** **Weather display is now added!** You can choose to show weather information alongside your public transport timetable using the combined display mode.
+
+The setup script will guide you through configuring:
 1. 🖥️ Display mode (timetable-only or combined weather+timetable)
 2. 🔗 Your Ruter stop URL
 3. 🌤️ Your weather location ID (if using combined mode)
