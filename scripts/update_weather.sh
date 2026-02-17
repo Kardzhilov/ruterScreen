@@ -3,6 +3,45 @@
 # Source the colors file
 source ./scripts/colours.sh
 
+# Safe function to replace a key-value pair in a file
+# Usage: safe_replace_config "KEY" "value" "filepath"
+safe_replace_config() {
+    local key="$1"
+    local value="$2"
+    local filepath="$3"
+    
+    # Use a more robust approach: create temp file and replace atomically
+    local temp_file=$(mktemp)
+    if awk -v key="$key" -v value="$value" '
+        BEGIN { found=0 }
+        /^[[:space:]]*'"$key"'[[:space:]]*=/ { 
+            print key "=\"" value "\""
+            found=1
+            next
+        }
+        { print }
+        END { if (!found) print key "=\"" value "\"" }
+    ' "$filepath" > "$temp_file"; then
+        mv "$temp_file" "$filepath"
+    else
+        rm -f "$temp_file"
+        return 1
+    fi
+}
+
+# Validate weather location ID format
+# Usage: validate_weather_location_id "wl1234"
+validate_weather_location_id() {
+    local location_id="$1"
+    
+    # Weather widget location IDs should match pattern: wl followed by digits
+    if [[ "$location_id" =~ ^wl[0-9]+$ ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 # Function to configure weather location ID
 configure_weather_location() {
     echo ""
@@ -28,6 +67,9 @@ configure_weather_location() {
             if [[ -z "$new_weather_location_id" ]]; then
                 echo "${RED}Location ID cannot be empty. No changes made.${NC}"
                 return
+            elif ! validate_weather_location_id "$new_weather_location_id"; then
+                echo "${RED}Invalid format. Location ID should be 'wl' followed by numbers (e.g., wl8757). No changes made.${NC}"
+                return
             fi
             echo "${GREEN}Selected: Custom location ($new_weather_location_id)${NC}"
             ;;
@@ -43,7 +85,7 @@ configure_weather_location() {
 
     if [ -n "$new_weather_location_id" ]; then
         # Update the weather location ID in launchSite.sh
-        sed -i "s|^WEATHER_LOCATION_ID=\".*\"|WEATHER_LOCATION_ID=\"$new_weather_location_id\"|" ./scripts/launchSite.sh
+        safe_replace_config "WEATHER_LOCATION_ID" "$new_weather_location_id" ./scripts/launchSite.sh
         echo "${GREEN}Weather location ID updated to: $new_weather_location_id${NC}"
     else
         echo "${RED}No location ID provided. No changes made.${NC}"
@@ -94,12 +136,12 @@ case $main_choice in
         case $mode_choice in
             1)
                 new_display_mode="timetable"
-                sed -i "s|^DISPLAY_MODE=\".*\"|DISPLAY_MODE=\"$new_display_mode\"|" ./scripts/launchSite.sh
+                safe_replace_config "DISPLAY_MODE" "$new_display_mode" ./scripts/launchSite.sh
                 echo "${GREEN}Display mode updated to: Timetable only${NC}"
                 ;;
             2)
                 new_display_mode="combined"
-                sed -i "s|^DISPLAY_MODE=\".*\"|DISPLAY_MODE=\"$new_display_mode\"|" ./scripts/launchSite.sh
+                safe_replace_config "DISPLAY_MODE" "$new_display_mode" ./scripts/launchSite.sh
                 echo "${GREEN}Display mode updated to: Combined (weather + timetable)${NC}"
                 
                 # If switching to combined mode, offer to configure weather location ID

@@ -28,6 +28,11 @@ cronjob_exists() {
 
 # Set up the basic cron jobs (always do this)
 setup_basic_cronjobs() {
+  # Backup current crontab before making changes
+  CRON_BACKUP="/tmp/crontab_backup_$(date +%s).txt"
+  crontab -l 2>/dev/null > "$CRON_BACKUP" || true
+  echo "Crontab backed up to: $CRON_BACKUP"
+  
   # Check if the @reboot cronjob for launchSite already exists
   if cronjob_exists "$CRONJOB_LAUNCH"; then
     echo "Cronjob for launchSite.sh at startup already exists. No changes made."
@@ -37,9 +42,11 @@ setup_basic_cronjobs() {
     echo "Cronjob for launchSite.sh at startup added successfully."
   fi
 
-  # Remove any existing refre.sh cronjobs
-  current_crontab=$(crontab -l 2>/dev/null | grep -v "$SCRIPT_DIR/refre.sh")
-  echo "$current_crontab" | crontab -
+  # Remove any existing refre.sh cronjobs safely
+  current_crontab=$(crontab -l 2>/dev/null)
+  if [ -n "$current_crontab" ]; then
+    echo "$current_crontab" | grep -v "$SCRIPT_DIR/refre.sh" | crontab -
+  fi
 
   # Check if the every-8-hours cronjob already exists
   if cronjob_exists "$CRONJOB_RESTART"; then
@@ -56,16 +63,20 @@ setup_basic_cronjobs
 
 # Handle motion detection cronjob based on argument
 if [ "$1" = "enable_motion" ]; then
-  # Remove any existing motion detection cronjobs
-  current_crontab=$(crontab -l 2>/dev/null | grep -v "motion_brightness.py")
-  echo "$current_crontab" | crontab -
+  # Remove any existing motion detection cronjobs safely
+  current_crontab=$(crontab -l 2>/dev/null)
+  if [ -n "$current_crontab" ]; then
+    echo "$current_crontab" | grep -v "motion_brightness.py" | crontab -
+  fi
   
   # Add the motion detection cronjob
   (crontab -l 2>/dev/null; echo "$CRONJOB_MOTION") | crontab -
   echo "Cronjob for motion_brightness.py added successfully."
 elif [ "$1" = "disable_motion" ]; then
-  # Remove any existing motion detection cronjobs
-  current_crontab=$(crontab -l 2>/dev/null | grep -v "motion_brightness.py")
-  echo "$current_crontab" | crontab -
+  # Remove any existing motion detection cronjobs safely
+  current_crontab=$(crontab -l 2>/dev/null)
+  if [ -n "$current_crontab" ]; then
+    echo "$current_crontab" | grep -v "motion_brightness.py" | crontab -
+  fi
   echo "Cronjob for motion_brightness.py removed."
 fi

@@ -42,7 +42,38 @@ else
     echo "Installing DSI Screen tools..."
     ## From https://www.waveshare.com/wiki/7inch_DSI_LCD
     cd "$HOME"
-    wget https://files.waveshare.com/upload/f/f4/Brightness.zip
+    
+    # Expected SHA256 checksum for Brightness.zip (should be updated with actual value)
+    # TODO: Verify this checksum matches the legitimate file from Waveshare
+    EXPECTED_CHECKSUM="PLACEHOLDER_UPDATE_WITH_ACTUAL_CHECKSUM"
+    BRIGHTNESS_URL="https://files.waveshare.com/upload/f/f4/Brightness.zip"
+    
+    # Download the file
+    echo "Downloading DSI Screen tools..."
+    if ! wget -O Brightness.zip "$BRIGHTNESS_URL"; then
+        echo "Error: Failed to download Brightness.zip"
+        cd "$HOME"
+        exit 1
+    fi
+    
+    # Verify checksum if not placeholder
+    if [ "$EXPECTED_CHECKSUM" != "PLACEHOLDER_UPDATE_WITH_ACTUAL_CHECKSUM" ]; then
+        echo "Verifying file integrity..."
+        ACTUAL_CHECKSUM=$(sha256sum Brightness.zip | awk '{print $1}')
+        if [ "$ACTUAL_CHECKSUM" != "$EXPECTED_CHECKSUM" ]; then
+            echo "Error: Checksum verification failed!"
+            echo "Expected: $EXPECTED_CHECKSUM"
+            echo "Actual: $ACTUAL_CHECKSUM"
+            rm -f Brightness.zip
+            cd "$HOME"
+            exit 1
+        fi
+        echo "Checksum verified successfully."
+    else
+        echo "Warning: Checksum verification skipped (placeholder checksum)."
+        echo "Current file SHA256: $(sha256sum Brightness.zip | awk '{print $1}')"
+    fi
+    
     unzip Brightness.zip
     rm Brightness.zip
     cd Brightness

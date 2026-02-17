@@ -3,6 +3,61 @@
 # Source the colors file
 source ./scripts/colours.sh
 
+# Safe function to replace a key-value pair in a file
+# Usage: safe_replace_config "KEY" "value" "filepath"
+safe_replace_config() {
+    local key="$1"
+    local value="$2"
+    local filepath="$3"
+    
+    # Escape special characters in the value for sed
+    local escaped_value=$(printf '%s\n' "$value" | sed -e 's/[\/&]/\\&/g')
+    
+    # Use a more robust approach: create temp file and replace atomically
+    local temp_file=$(mktemp)
+    if awk -v key="$key" -v value="$value" '
+        BEGIN { found=0 }
+        /^[[:space:]]*'"$key"'[[:space:]]*=/ { 
+            print key "=\"" value "\""
+            found=1
+            next
+        }
+        { print }
+        END { if (!found) print key "=\"" value "\"" }
+    ' "$filepath" > "$temp_file"; then
+        mv "$temp_file" "$filepath"
+    else
+        rm -f "$temp_file"
+        return 1
+    fi
+}
+
+# Validate weather location ID format
+# Usage: validate_weather_location_id "wl1234"
+validate_weather_location_id() {
+    local location_id="$1"
+    
+    # Weather widget location IDs should match pattern: wl followed by digits
+    if [[ "$location_id" =~ ^wl[0-9]+$ ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Validate URL format
+# Usage: validate_url "https://example.com"
+validate_url() {
+    local url="$1"
+    
+    # Basic URL validation - must start with http:// or https://
+    if [[ "$url" =~ ^https?:// ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 echo "${CYAN}Starting setup...${NC}"
 
 # Run dependencies.sh script
@@ -64,7 +119,7 @@ if [ "$SKIP_DISPLAY_CONFIG" != "true" ]; then
     done
     
     # Update display mode in launchSite.sh
-    sed -i "s|^DISPLAY_MODE=\".*\"|DISPLAY_MODE=\"$display_mode\"|" ./scripts/launchSite.sh
+    safe_replace_config "DISPLAY_MODE" "$display_mode" ./scripts/launchSite.sh
 else
     display_mode="$current_display_mode"
 fi
@@ -80,9 +135,15 @@ if [ -n "$current_ruter_url" ]; then
         echo "${CYAN}Go to https://mon.ruter.no/ and fill out/customize your stop.${NC}"
         echo "${CYAN}Once you have set up your custom stop, copy and paste the whole URL into this terminal.${NC}"
         read -p "${MAGENTA}Ruter URL: ${NC}" ruter_url
-
-        # Replace the placeholder URL in launchSite.sh
-        sed -i "s|^RUTER_URL=\".*\"|RUTER_URL=\"$ruter_url\"|" ./scripts/launchSite.sh
+        
+        # Validate URL
+        if ! validate_url "$ruter_url"; then
+            echo "${RED}Error: Invalid URL format. URL must start with http:// or https://${NC}"
+            echo "${YELLOW}Keeping current URL.${NC}"
+        else
+            # Replace the placeholder URL in launchSite.sh
+            safe_replace_config "RUTER_URL" "$ruter_url" ./scripts/launchSite.sh
+        fi
     else
         echo "${GREEN}Keeping current Ruter URL.${NC}"
     fi
@@ -92,9 +153,16 @@ else
     echo "${CYAN}Go to https://mon.ruter.no/ and fill out/customize your stop.${NC}"
     echo "${CYAN}Once you have set up your custom stop, copy and paste the whole URL into this terminal.${NC}"
     read -p "${MAGENTA}Ruter URL: ${NC}" ruter_url
+    
+    # Validate URL
+    if ! validate_url "$ruter_url"; then
+        echo "${RED}Error: Invalid URL format. URL must start with http:// or https://${NC}"
+        echo "${YELLOW}Using default URL: https://mon.ruter.no/${NC}"
+        ruter_url="https://mon.ruter.no/"
+    fi
 
     # Replace the placeholder URL in launchSite.sh
-    sed -i "s|^RUTER_URL=\".*\"|RUTER_URL=\"$ruter_url\"|" ./scripts/launchSite.sh
+    safe_replace_config "RUTER_URL" "$ruter_url" ./scripts/launchSite.sh
 fi
 
 # Configure weather location ID only if combined mode is selected
@@ -123,9 +191,12 @@ if [ "$display_mode" = "combined" ]; then
                         ;;
                     2)
                         read -p "${MAGENTA}Enter your weatherwidget.org location ID (e.g., wl1234): ${NC}" weather_location_id
-                        if [[ -n "$weather_location_id" ]]; then
+                        # Validate format
+                        if [[ -n "$weather_location_id" ]] && validate_weather_location_id "$weather_location_id"; then
                             echo "${GREEN}Selected: Custom location ($weather_location_id)${NC}"
                             break
+                        elif [[ -n "$weather_location_id" ]]; then
+                            echo "${RED}Invalid format. Location ID should be 'wl' followed by numbers (e.g., wl8757). Please try again.${NC}"
                         else
                             echo "${RED}Location ID cannot be empty. Please try again.${NC}"
                         fi
@@ -137,7 +208,7 @@ if [ "$display_mode" = "combined" ]; then
             done
 
             # Replace the weather location ID in launchSite.sh
-            sed -i "s|^WEATHER_LOCATION_ID=\".*\"|WEATHER_LOCATION_ID=\"$weather_location_id\"|" ./scripts/launchSite.sh
+            safe_replace_config "WEATHER_LOCATION_ID" "$weather_location_id" ./scripts/launchSite.sh
         else
             echo "${GREEN}Keeping current weather location ID.${NC}"
         fi
@@ -164,9 +235,12 @@ if [ "$display_mode" = "combined" ]; then
                     ;;
                 2)
                     read -p "${MAGENTA}Enter your weatherwidget.org location ID (e.g., wl1234): ${NC}" weather_location_id
-                    if [[ -n "$weather_location_id" ]]; then
+                    # Validate format
+                    if [[ -n "$weather_location_id" ]] && validate_weather_location_id "$weather_location_id"; then
                         echo "${GREEN}Selected: Custom location ($weather_location_id)${NC}"
                         break
+                    elif [[ -n "$weather_location_id" ]]; then
+                        echo "${RED}Invalid format. Location ID should be 'wl' followed by numbers (e.g., wl8757). Please try again.${NC}"
                     else
                         echo "${RED}Location ID cannot be empty. Please try again.${NC}"
                     fi
@@ -178,7 +252,7 @@ if [ "$display_mode" = "combined" ]; then
         done
 
         # Replace the weather location ID in launchSite.sh
-        sed -i "s|^WEATHER_LOCATION_ID=\".*\"|WEATHER_LOCATION_ID=\"$weather_location_id\"|" ./scripts/launchSite.sh
+        safe_replace_config "WEATHER_LOCATION_ID" "$weather_location_id" ./scripts/launchSite.sh
     fi
 else
     echo "${YELLOW}Timetable-only mode selected. Skipping weather location configuration.${NC}"
@@ -249,8 +323,25 @@ setup_motion_brightness() {
         # Use default if empty
         timeout=${timeout:-$current_timeout}
         
-        # Update the timeout in the file
-        sed -i "s/--timeout'.*default=[0-9]\+/--timeout', type=int, default=$timeout/" ./scripts/motion_brightness.py
+        # Validate timeout is a positive integer
+        if ! [[ "$timeout" =~ ^[0-9]+$ ]] || [ "$timeout" -lt 1 ]; then
+            echo "${RED}Invalid timeout. Using default: $current_timeout${NC}"
+            timeout=$current_timeout
+        fi
+        
+        # Update the timeout in the file using a safer approach
+        if [ -f ./scripts/motion_brightness.py ]; then
+            # Use Python to safely update the file
+            python3 -c "
+import re
+with open('./scripts/motion_brightness.py', 'r') as f:
+    content = f.read()
+content = re.sub(r\"--timeout',\s*type=int,\s*default=[0-9]+\", 
+                 \"--timeout', type=int, default=$timeout\", content)
+with open('./scripts/motion_brightness.py', 'w') as f:
+    f.write(content)
+"
+        fi
         echo "${GREEN}Timeout set to $timeout seconds.${NC}"
     fi
     
@@ -262,14 +353,30 @@ setup_motion_brightness() {
         # Use default if empty
         on_value=${on_value:-$current_on_value}
         
+        # Validate brightness is a number between 0-255
+        if ! [[ "$on_value" =~ ^[0-9]+$ ]] || [ "$on_value" -lt 0 ] || [ "$on_value" -gt 255 ]; then
+            echo "${RED}Invalid brightness value. Must be between 0 and 255.${NC}"
+            continue
+        fi
+        
         # Preview the brightness
         echo "${YELLOW}Setting brightness to $on_value for preview...${NC}"
         sudo ./scripts/brightness.sh $on_value
         
         read -p "${MAGENTA}Is this brightness good? (Y/n): ${NC}" is_good
         if [[ "$is_good" != "n" && "$is_good" != "N" ]]; then
-            # Update the on_value in the file
-            sed -i "s/--on-value'.*default=\"[0-9]\+\"/--on-value', type=str, default=\"$on_value\"/" ./scripts/motion_brightness.py
+            # Update the on_value in the file using a safer approach
+            if [ -f ./scripts/motion_brightness.py ]; then
+                python3 -c "
+import re
+with open('./scripts/motion_brightness.py', 'r') as f:
+    content = f.read()
+content = re.sub(r\"--on-value',\s*type=str,\s*default=\\\"[0-9]+\\\"\", 
+                 \"--on-value', type=str, default=\\\"$on_value\\\"\", content)
+with open('./scripts/motion_brightness.py', 'w') as f:
+    f.write(content)
+"
+            fi
             break
         fi
     done
@@ -283,6 +390,12 @@ setup_motion_brightness() {
             # Use default if empty
             off_value=${off_value:-$current_off_value}
             
+            # Validate brightness is a number between 0-255
+            if ! [[ "$off_value" =~ ^[0-9]+$ ]] || [ "$off_value" -lt 0 ] || [ "$off_value" -gt 255 ]; then
+                echo "${RED}Invalid brightness value. Must be between 0 and 255.${NC}"
+                continue
+            fi
+            
             # Preview the brightness for 10 seconds
             echo "${YELLOW}Setting brightness to $off_value for preview (10 seconds)...${NC}"
             sudo ./scripts/brightness.sh $off_value
@@ -294,14 +407,34 @@ setup_motion_brightness() {
             
             read -p "${MAGENTA}Is this dimmed brightness good? (Y/n): ${NC}" is_good
             if [[ "$is_good" != "n" && "$is_good" != "N" ]]; then
-                # Update the off_value in the file
-                sed -i "s/--off-value'.*default=\"[0-9]\+\"/--off-value', type=str, default=\"$off_value\"/" ./scripts/motion_brightness.py
+                # Update the off_value in the file using a safer approach
+                if [ -f ./scripts/motion_brightness.py ]; then
+                    python3 -c "
+import re
+with open('./scripts/motion_brightness.py', 'r') as f:
+    content = f.read()
+content = re.sub(r\"--off-value',\s*type=str,\s*default=\\\"[0-9]+\\\"\", 
+                 \"--off-value', type=str, default=\\\"$off_value\\\"\", content)
+with open('./scripts/motion_brightness.py', 'w') as f:
+    f.write(content)
+"
+                fi
                 break
             fi
         done
     else
         # If motion detection is disabled, set both brightness values to the same
-        sed -i "s/--off-value'.*default=\"[0-9]\+\"/--off-value', type=str, default=\"$on_value\"/" ./scripts/motion_brightness.py
+        if [ -f ./scripts/motion_brightness.py ]; then
+            python3 -c "
+import re
+with open('./scripts/motion_brightness.py', 'r') as f:
+    content = f.read()
+content = re.sub(r\"--off-value',\s*type=str,\s*default=\\\"[0-9]+\\\"\", 
+                 \"--off-value', type=str, default=\\\"$on_value\\\"\", content)
+with open('./scripts/motion_brightness.py', 'w') as f:
+    f.write(content)
+"
+        fi
     fi
     
     # Always set brightness back to on_value at the end

@@ -42,21 +42,30 @@ else
     echo "Firefox is already installed: $(which firefox-esr)"
 fi
 
-# If firefox is running, kill it first
+# If firefox is running, kill it first using safer PID-based approach
 if pgrep -x "firefox-esr" > /dev/null; then
-    echo "Firefox is still running. Killing it..."
-    pkill -9 firefox-esr
+    echo "Firefox is still running. Stopping it safely..."
+    # Get the PID(s) of firefox-esr and kill them specifically
+    FIREFOX_PIDS=$(pgrep -x "firefox-esr")
+    for pid in $FIREFOX_PIDS; do
+        echo "Killing Firefox process with PID: $pid"
+        kill -15 "$pid" 2>/dev/null || true
+    done
     # Wait to make sure it's fully closed
     sleep 3
-    if pgrep -x "firefox-esr" > /dev/null; then
-        echo "Trying harder to kill Firefox..."
-        killall -9 firefox-esr
+    # Check if any are still running and force kill if necessary
+    FIREFOX_PIDS=$(pgrep -x "firefox-esr")
+    if [ -n "$FIREFOX_PIDS" ]; then
+        echo "Firefox still running, forcing termination..."
+        for pid in $FIREFOX_PIDS; do
+            kill -9 "$pid" 2>/dev/null || true
+        done
         sleep 2
     fi
 fi
 
-# Create a temporary profile to prevent session restore prompts
-TEMP_PROFILE=$(mktemp -d)
+# Create a temporary profile with restricted permissions to prevent session restore prompts
+TEMP_PROFILE=$(mktemp -d -m 0700)
 echo "Creating temporary Firefox profile at $TEMP_PROFILE"
 
 # Create a user.js file in the temporary profile to disable session restore
@@ -93,8 +102,10 @@ if [ "$DISPLAY_MODE" = "timetable" ]; then
     if [ -f "$TEMPLATE_PATH" ]; then
         cp "$TEMPLATE_PATH" "$CUSTOM_HTML_PATH"
         
-        # Replace URL placeholder
-        sed -i "s|RUTER_URL_PLACEHOLDER|$RUTER_URL|g" "$CUSTOM_HTML_PATH"
+        # Replace URL placeholder using a safer approach with perl
+        # Escape special characters in the URL for use in replacement
+        SAFE_RUTER_URL=$(printf '%s\n' "$RUTER_URL" | sed -e 's/[\/&]/\\&/g')
+        perl -pi -e "s|RUTER_URL_PLACEHOLDER|$SAFE_RUTER_URL|g" "$CUSTOM_HTML_PATH"
         
         echo "URLs configured:"
         echo "  Ruter: $RUTER_URL"
@@ -119,10 +130,15 @@ else
         # Use a known working widget ID that's compatible with weatherwidget.org
         WIDGET_ID="ww_ab6e8fddccec6"
         
-        # Replace URL and widget placeholders - need to replace multiple instances
-        sed -i "s|RUTER_URL_PLACEHOLDER|$RUTER_URL|g" "$CUSTOM_HTML_PATH"
-        sed -i "s|WEATHER_WIDGET_ID_PLACEHOLDER|$WIDGET_ID|g" "$CUSTOM_HTML_PATH"
-        sed -i "s|WEATHER_LOCATION_ID_PLACEHOLDER|$WEATHER_LOCATION_ID|g" "$CUSTOM_HTML_PATH"
+        # Replace URL and widget placeholders using safer approach with perl
+        # Escape special characters in variables for use in replacement
+        SAFE_RUTER_URL=$(printf '%s\n' "$RUTER_URL" | sed -e 's/[\/&]/\\&/g')
+        SAFE_WIDGET_ID=$(printf '%s\n' "$WIDGET_ID" | sed -e 's/[\/&]/\\&/g')
+        SAFE_LOCATION_ID=$(printf '%s\n' "$WEATHER_LOCATION_ID" | sed -e 's/[\/&]/\\&/g')
+        
+        perl -pi -e "s|RUTER_URL_PLACEHOLDER|$SAFE_RUTER_URL|g" "$CUSTOM_HTML_PATH"
+        perl -pi -e "s|WEATHER_WIDGET_ID_PLACEHOLDER|$SAFE_WIDGET_ID|g" "$CUSTOM_HTML_PATH"
+        perl -pi -e "s|WEATHER_LOCATION_ID_PLACEHOLDER|$SAFE_LOCATION_ID|g" "$CUSTOM_HTML_PATH"
         
         # Debug: Check if replacements worked
         echo "Debug: Checking widget ID replacements..."

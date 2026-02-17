@@ -69,7 +69,8 @@ def main():
     logger.info("="*50)
     logger.info("Motion Detector started")
     logger.info(f"Process ID: {os.getpid()}")
-    logger.info(f"Started by user: {os.getlogin() if hasattr(os, 'getlogin') else 'unknown'}")
+    # Use environment variable instead of os.getlogin() for better compatibility
+    logger.info(f"Started by user: {os.environ.get('USER', os.environ.get('USERNAME', 'unknown'))}")
     logger.info(f"Running from: {os.path.abspath(__file__)}")
     logger.info(f"Timeout: {args.timeout} seconds")
     logger.info(f"ON brightness: {args.on_value}")
