@@ -329,7 +329,7 @@ setup_motion_brightness() {
         # Update the timeout in the file using a safer approach
         if [ -f ./scripts/motion_brightness.py ]; then
             # Use Python to safely update the file
-            if ! python3 -c "
+            if python3 -c "
 import re
 import sys
 with open('./scripts/motion_brightness.py', 'r') as f:
@@ -371,7 +371,7 @@ with open('./scripts/motion_brightness.py', 'w') as f:
         if [[ "$is_good" != "n" && "$is_good" != "N" ]]; then
             # Update the on_value in the file using a safer approach
             if [ -f ./scripts/motion_brightness.py ]; then
-                if ! python3 -c "
+                if python3 -c "
 import re
 import sys
 with open('./scripts/motion_brightness.py', 'r') as f:
@@ -384,6 +384,8 @@ if content == new_content:
 with open('./scripts/motion_brightness.py', 'w') as f:
     f.write(new_content)
 "; then
+                    echo "${GREEN}On-value brightness updated successfully.${NC}"
+                else
                     echo "${RED}Warning: Could not update on-value in motion_brightness.py${NC}"
                 fi
             fi
@@ -419,7 +421,7 @@ with open('./scripts/motion_brightness.py', 'w') as f:
             if [[ "$is_good" != "n" && "$is_good" != "N" ]]; then
                 # Update the off_value in the file using a safer approach
                 if [ -f ./scripts/motion_brightness.py ]; then
-                    if ! python3 -c "
+                    if python3 -c "
 import re
 import sys
 with open('./scripts/motion_brightness.py', 'r') as f:
@@ -432,6 +434,8 @@ if content == new_content:
 with open('./scripts/motion_brightness.py', 'w') as f:
     f.write(new_content)
 "; then
+                        echo "${GREEN}Off-value brightness updated successfully.${NC}"
+                    else
                         echo "${RED}Warning: Could not update off-value in motion_brightness.py${NC}"
                     fi
                 fi
@@ -441,7 +445,7 @@ with open('./scripts/motion_brightness.py', 'w') as f:
     else
         # If motion detection is disabled, set both brightness values to the same
         if [ -f ./scripts/motion_brightness.py ]; then
-            if ! python3 -c "
+            if python3 -c "
 import re
 import sys
 with open('./scripts/motion_brightness.py', 'r') as f:
@@ -454,6 +458,8 @@ if content == new_content:
 with open('./scripts/motion_brightness.py', 'w') as f:
     f.write(new_content)
 "; then
+                echo "${GREEN}Off-value brightness set to match on-value.${NC}"
+            else
                 echo "${RED}Warning: Could not update off-value in motion_brightness.py${NC}"
             fi
         fi
