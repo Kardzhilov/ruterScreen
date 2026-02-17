@@ -3,5 +3,10 @@ scripts/motion_brightness.py
 *.temp
 *.log
 
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
 # Test files (generated locally)
 test/

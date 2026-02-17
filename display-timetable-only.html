@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; frame-src https://mon.ruter.no https://tavla.entur.no; connect-src 'self';">
     <title>RuterScreen - Timetable Only</title>
     <style>
         * {
@@ -67,7 +68,7 @@
                 src="RUTER_URL_PLACEHOLDER"
                 title="Ruter Timetable"
                 loading="lazy"
-                sandbox="allow-scripts allow-same-origin allow-popups"
+                sandbox="allow-scripts allow-same-origin"
                 onload="handleFrameLoad('timetable')"
                 onerror="handleFrameError('timetable')">
                 <div class="error-message">Timetable data unavailable</div>
