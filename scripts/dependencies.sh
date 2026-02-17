@@ -43,9 +43,10 @@ else
     ## From https://www.waveshare.com/wiki/7inch_DSI_LCD
     cd "$HOME"
     
-    # Expected SHA256 checksum for Brightness.zip (should be updated with actual value)
-    # TODO: Verify this checksum matches the legitimate file from Waveshare
-    EXPECTED_CHECKSUM="PLACEHOLDER_UPDATE_WITH_ACTUAL_CHECKSUM"
+    # Expected SHA256 checksum for Brightness.zip
+    # NOTE: This should be verified independently and updated by the maintainer
+    # To get the actual checksum, download from a trusted source and run: sha256sum Brightness.zip
+    # For now, we'll download and display the checksum for manual verification
     BRIGHTNESS_URL="https://files.waveshare.com/upload/f/f4/Brightness.zip"
     
     # Download the file
@@ -56,22 +57,28 @@ else
         exit 1
     fi
     
-    # Verify checksum if not placeholder
-    if [ "$EXPECTED_CHECKSUM" != "PLACEHOLDER_UPDATE_WITH_ACTUAL_CHECKSUM" ]; then
-        echo "Verifying file integrity..."
-        ACTUAL_CHECKSUM=$(sha256sum Brightness.zip | awk '{print $1}')
-        if [ "$ACTUAL_CHECKSUM" != "$EXPECTED_CHECKSUM" ]; then
-            echo "Error: Checksum verification failed!"
-            echo "Expected: $EXPECTED_CHECKSUM"
-            echo "Actual: $ACTUAL_CHECKSUM"
-            rm -f Brightness.zip
-            cd "$HOME"
-            exit 1
-        fi
-        echo "Checksum verified successfully."
-    else
-        echo "Warning: Checksum verification skipped (placeholder checksum)."
-        echo "Current file SHA256: $(sha256sum Brightness.zip | awk '{print $1}')"
+    # Display checksum for manual verification
+    ACTUAL_CHECKSUM=$(sha256sum Brightness.zip | awk '{print $1}')
+    echo "============================================"
+    echo "SECURITY NOTICE: Manual Checksum Verification"
+    echo "============================================"
+    echo "Downloaded file SHA256 checksum:"
+    echo "$ACTUAL_CHECKSUM"
+    echo ""
+    echo "Please verify this checksum matches the official Waveshare release."
+    echo "You can find the official checksum at:"
+    echo "  https://www.waveshare.com/wiki/7inch_DSI_LCD"
+    echo ""
+    echo "If you have independently verified the checksum is correct,"
+    echo "you can proceed with the installation."
+    echo "============================================"
+    read -p "Do you want to proceed with installation? (y/N): " proceed
+    
+    if [[ "$proceed" != "y" && "$proceed" != "Y" ]]; then
+        echo "Installation cancelled. Removing downloaded file."
+        rm -f Brightness.zip
+        cd "$HOME"
+        exit 1
     fi
     
     unzip Brightness.zip

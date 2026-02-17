@@ -10,9 +10,6 @@ safe_replace_config() {
     local value="$2"
     local filepath="$3"
     
-    # Escape special characters in the value for sed
-    local escaped_value=$(printf '%s\n' "$value" | sed -e 's/[\/&]/\\&/g')
-    
     # Use a more robust approach: create temp file and replace atomically
     local temp_file=$(mktemp)
     if awk -v key="$key" -v value="$value" '
@@ -332,17 +329,24 @@ setup_motion_brightness() {
         # Update the timeout in the file using a safer approach
         if [ -f ./scripts/motion_brightness.py ]; then
             # Use Python to safely update the file
-            python3 -c "
+            if ! python3 -c "
 import re
+import sys
 with open('./scripts/motion_brightness.py', 'r') as f:
     content = f.read()
-content = re.sub(r\"--timeout',\s*type=int,\s*default=[0-9]+\", 
-                 \"--timeout', type=int, default=$timeout\", content)
+new_content = re.sub(r\"--timeout',\s*type=int,\s*default=[0-9]+\", 
+                     \"--timeout', type=int, default=$timeout\", content)
+if content == new_content:
+    print('Warning: Pattern not found, timeout value may not have been updated', file=sys.stderr)
+    sys.exit(1)
 with open('./scripts/motion_brightness.py', 'w') as f:
-    f.write(content)
-"
+    f.write(new_content)
+"; then
+                echo "${GREEN}Timeout set to $timeout seconds.${NC}"
+            else
+                echo "${RED}Warning: Could not update timeout value in motion_brightness.py${NC}"
+            fi
         fi
-        echo "${GREEN}Timeout set to $timeout seconds.${NC}"
     fi
     
     # Configure brightness when screen is active
@@ -367,15 +371,21 @@ with open('./scripts/motion_brightness.py', 'w') as f:
         if [[ "$is_good" != "n" && "$is_good" != "N" ]]; then
             # Update the on_value in the file using a safer approach
             if [ -f ./scripts/motion_brightness.py ]; then
-                python3 -c "
+                if ! python3 -c "
 import re
+import sys
 with open('./scripts/motion_brightness.py', 'r') as f:
     content = f.read()
-content = re.sub(r\"--on-value',\s*type=str,\s*default=\\\"[0-9]+\\\"\", 
-                 \"--on-value', type=str, default=\\\"$on_value\\\"\", content)
+new_content = re.sub(r\"--on-value',\s*type=str,\s*default=\\\"[0-9]+\\\"\", 
+                     \"--on-value', type=str, default=\\\"$on_value\\\"\", content)
+if content == new_content:
+    print('Warning: Pattern not found, on-value may not have been updated', file=sys.stderr)
+    sys.exit(1)
 with open('./scripts/motion_brightness.py', 'w') as f:
-    f.write(content)
-"
+    f.write(new_content)
+"; then
+                    echo "${RED}Warning: Could not update on-value in motion_brightness.py${NC}"
+                fi
             fi
             break
         fi
@@ -409,15 +419,21 @@ with open('./scripts/motion_brightness.py', 'w') as f:
             if [[ "$is_good" != "n" && "$is_good" != "N" ]]; then
                 # Update the off_value in the file using a safer approach
                 if [ -f ./scripts/motion_brightness.py ]; then
-                    python3 -c "
+                    if ! python3 -c "
 import re
+import sys
 with open('./scripts/motion_brightness.py', 'r') as f:
     content = f.read()
-content = re.sub(r\"--off-value',\s*type=str,\s*default=\\\"[0-9]+\\\"\", 
-                 \"--off-value', type=str, default=\\\"$off_value\\\"\", content)
+new_content = re.sub(r\"--off-value',\s*type=str,\s*default=\\\"[0-9]+\\\"\", 
+                     \"--off-value', type=str, default=\\\"$off_value\\\"\", content)
+if content == new_content:
+    print('Warning: Pattern not found, off-value may not have been updated', file=sys.stderr)
+    sys.exit(1)
 with open('./scripts/motion_brightness.py', 'w') as f:
-    f.write(content)
-"
+    f.write(new_content)
+"; then
+                        echo "${RED}Warning: Could not update off-value in motion_brightness.py${NC}"
+                    fi
                 fi
                 break
             fi
@@ -425,15 +441,21 @@ with open('./scripts/motion_brightness.py', 'w') as f:
     else
         # If motion detection is disabled, set both brightness values to the same
         if [ -f ./scripts/motion_brightness.py ]; then
-            python3 -c "
+            if ! python3 -c "
 import re
+import sys
 with open('./scripts/motion_brightness.py', 'r') as f:
     content = f.read()
-content = re.sub(r\"--off-value',\s*type=str,\s*default=\\\"[0-9]+\\\"\", 
-                 \"--off-value', type=str, default=\\\"$on_value\\\"\", content)
+new_content = re.sub(r\"--off-value',\s*type=str,\s*default=\\\"[0-9]+\\\"\", 
+                     \"--off-value', type=str, default=\\\"$on_value\\\"\", content)
+if content == new_content:
+    print('Warning: Pattern not found, off-value may not have been updated', file=sys.stderr)
+    sys.exit(1)
 with open('./scripts/motion_brightness.py', 'w') as f:
-    f.write(content)
-"
+    f.write(new_content)
+"; then
+                echo "${RED}Warning: Could not update off-value in motion_brightness.py${NC}"
+            fi
         fi
     fi
     
