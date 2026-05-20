@@ -1,5 +1,11 @@
 # 🚉 RuterScreen
 
+> ⚠️ **This repository is archived and no longer maintained.**
+>
+> After evaluation, a second-hand Android tablet running in kiosk mode was found to be a more practical and cost-effective solution compared to a Raspberry Pi with a dedicated screen. The hardware cost and setup complexity of the Pi-based approach did not justify the benefits. If you are looking for a similar solution, consider using an Android tablet with a kiosk browser app pointed at [mon.ruter.no](https://mon.ruter.no/) or [Entur Tavla](https://tavla.entur.no/).
+>
+> The code is preserved here for reference.
+
 A Raspberry Pi-powered display for showing real-time public transport timetables in Oslo/Viken.
 
 > **Note:** **Weather display is now added!** You can choose to show weather information alongside your public transport timetable using the combined display mode.
